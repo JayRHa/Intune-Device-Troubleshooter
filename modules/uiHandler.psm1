@@ -27,7 +27,8 @@ function Set-UiActionButton{
             $WPFGridAbout.Visibility="Visible"
         }
     }
-
+    Add-XamlEvent -object $WPFBlogPost -event "Add_Click" -scriptBlock {Start-Process "https://github.com/JayRHa/Intune-Device-Troubleshooter"} 
+    Add-XamlEvent -object $WPFReadme -event "Add_Click" -scriptBlock {Start-Process "https://github.com/JayRHa/Intune-Device-Troubleshooter"} 
     Add-XamlEvent -object $WPFButtonAboutWordpress -event "Add_Click" -scriptBlock {Start-Process "https://www.jannikreinhard.com"}
     Add-XamlEvent -object $WPFButtonAboutTwitter -event "Add_Click" -scriptBlock {Start-Process "https://twitter.com/jannik_reinhard"}
     Add-XamlEvent -object $WPFButtonAboutLinkedIn -event "Add_Click" -scriptBlock {Start-Process "https://www.linkedin.com/in/jannik-r/"}

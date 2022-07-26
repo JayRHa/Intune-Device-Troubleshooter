@@ -56,9 +56,9 @@
                         <Label Content="(c) 2022 by Jannik Reinhard (MIT License)" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF"/>
                         <TextBlock HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF">
                             Get more information about Intune Device Troubleshooter in my
-                            <Hyperlink NavigateUri="http://stackoverflow.com">blog post</Hyperlink>
+                            <Hyperlink x:Name="BlogPost" NavigateUri="">blog post</Hyperlink>
                             or via the
-                            <Hyperlink NavigateUri="http://stackoverflow.com">readme</Hyperlink> on git.
+                            <Hyperlink x:Name="Readme" NavigateUri="">readme</Hyperlink> on git.
                         </TextBlock>
                         <Label Content="Check out my social media profiles:" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF" FontSize="18"/>
                         <StackPanel Orientation="Horizontal">
