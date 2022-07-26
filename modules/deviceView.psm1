@@ -103,7 +103,7 @@ function Get-DeviceData{
     $storage = ""
     if($($device.freeStorageSpaceInBytes)){
         $storageTotal = [math]::Round(($($device.totalStorageSpaceInBytes) / 1GB))
-        $storageUsed = $storageTotal - ([math]::Round(($($device.freeStorageSpace) / 1GB)))
+        $storageUsed = $storageTotal - ([math]::Round(($($device.freeStorageSpaceInBytes) / 1GB)))
         $storageProcent = [math]::Round((100 / $storageTotal) * $storageUsed)
         $storage = "$($storageUsed)GB/$($storageTotal)GB ($storageProcent%)"
     }else {
@@ -120,13 +120,19 @@ function Get-DeviceData{
 
     # Config Profiles
     $deviceConfigProfiles = Get-MgDeviceManagementManagedDeviceConfigurationState -ManagedDeviceId $deviceId | Where-Object {-not($_.State -eq 'unknown')}
+    $configProfileSucceededCount        = (@($deviceConfigProfiles | Where-Object{ $_.State -eq 'compliant'})).count
+    $configProfileErrorCount            = (@($deviceConfigProfiles | Where-Object{ $_.State -eq 'error'})).count
+    $configProfileError                 = (($deviceConfigProfiles | Where-Object{ $_.State -eq 'error'}).DisplayName)  | Select-Object -Unique
+    $configProfileNotApplicableCount    = (@($deviceConfigProfiles | Where-Object{ $_.State -eq 'notApplicable'})).count
 
-    $configProfileSucceededCount        = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'compliant'}).count
-    $configProfileErrorCount            = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'error'}).count
-    $configProfileError                 = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'error'}).DisplayName
-    $configProfileNotApplicableCount    = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'notApplicable'}).count
+    #Apps
+    $uri = "https://graph.microsoft.com/beta/users('" + $deviceOwner.id + "')/mobileAppIntentAndStates('" + $deviceId + "')"
+    $deviceApps = (Invoke-MgGraphRequest -Method GET -Uri $uri).mobileAppList
 
-
+    $appInstalledCount  = (@($deviceApps | Where-Object{ $_.installState -eq 'installed'})).count
+    $appUnknowCount     = (@($deviceApps | Where-Object{ $_.installState -eq 'unknown'})).count
+    $appErrorCount      = (@($deviceApps | Where-Object{ $_.installState -eq 'error'})).count
+    $appError           = (($deviceApps | Where-Object{ $_.installState -eq 'error'}).DisplayName)  | Select-Object -Unique
 
     $device = [PSCustomObject]@{
         Id                      = $deviceId
@@ -181,6 +187,7 @@ function Get-DeviceData{
         BiosVersion             = $deviceDetails.hardwareInformation.systemManagementBIOSVersion
         Hardwaretype            = $device.chassisType
         Storage                 = $storage
+        StorageProcent          = $storageProcent
         Ram                     = "$(($deviceDetails.physicalMemoryInBytes / 1GB))GB"
         IsEncrypted             = ($device.isEncrypted).ToString()
 
@@ -195,6 +202,12 @@ function Get-DeviceData{
         ProfileError            = $configProfileErrorCount
         ProfileNotApplicable    = $configProfileNotApplicableCount
         ProfilesErrorList       = $configProfileError
+
+        AppsInstalled           = "$appInstalledCount/$($appInstalledCount+$appUnknowCount+$appErrorCount)"  
+        AppsUnknow              = $appUnknowCount
+        AppsError               = $appErrorCount
+        AppsErrorList           = $appError
+
       }
 
     $global:SelectedDeviceDetails = $device
@@ -202,15 +215,24 @@ function Get-DeviceData{
 }
 
 function Get-DeviceRecommendation {
-
-    # IP Addresses
+    $global:recommendations = $null
     $global:recommendations = [System.Data.DataTable]::New()
-    [void]$global:recommendations.Columns.AddRange(@('Recommendation', 'RecommendationAction'))
+    [void]$global:recommendations.Columns.AddRange(@('Recommendation', 'RecommendationAction', 'RecommendationActionVisibility'))
     $global:recommendations.primarykey = $global:recommendations.columns['Recommendation']
     $WPFDataGridRecommendation.ItemsSource = $global:recommendations.DefaultView
 
-    $global:SelectedDeviceDetails.ProfilesErrorList | ForEach-Object {[void]$global:recommendations.Rows.Add("Error state for Config Profile: $_ ", "Check config profiles")}
-    $global:SelectedDeviceDetails.UncompliantPoliciesList | ForEach-Object {[void]$global:recommendations.Rows.Add("Uncompliant Policy: $_ ", "Check compliance policy")}
+    if($global:SelectedDeviceDetails.ProfileError -gt 0){$global:SelectedDeviceDetails.ProfilesErrorList | ForEach-Object {[void]$global:recommendations.Rows.Add("Error state for Config Profile: $_ ", "Check config profiles",'Visible')}}
+    if($global:SelectedDeviceDetails.UncompliantPolicies -gt 0){$global:SelectedDeviceDetails.UncompliantPoliciesList | ForEach-Object {[void]$global:recommendations.Rows.Add("Uncompliant Policy: $_ ", "Check compliance policy",'Visible')}}
+    if($global:SelectedDeviceDetails.AppsError -gt 0){$global:SelectedDeviceDetails.AppsErrorList | ForEach-Object {[void]$global:recommendations.Rows.Add("App in error state: $_ ", "Check Apps",'Visible')}}
+    if($global:SelectedDeviceDetails.AppsUnknow -gt 0) {[void]$global:recommendations.Rows.Add("$($global:SelectedDeviceDetails.AppsUnknow) App(s) in an unknow state", "Check Apps",'Hidden')}
+
+
+    if($global:SelectedDeviceDetails.StorageProcent -gt 80) {[void]$global:recommendations.Rows.Add("Device low of storage: $($global:SelectedDeviceDetails.Storage)", "",'Hidden')}
+    if($global:SelectedDeviceDetails.OwnerIntuneLicense -eq 'False') {[void]$global:recommendations.Rows.Add("Device owner has no intune license: $($global:SelectedDeviceDetails.OwnerUpn)", "Assign a intune license",'Visible')}
+
+    if($global:SelectedDeviceDetails.IsEncrypted -eq 'False') {[void]$global:recommendations.Rows.Add("Device is not encrypted", "",'Hidden')}
+    if(-not ($global:SelectedDeviceDetails.LostModeState -eq 'disabled')) {[void]$global:recommendations.Rows.Add("Device is in the lost mode", "",'Hidden')}
+    if($global:SelectedDeviceDetails.ActiveMalware -gt 0) {[void]$global:recommendations.Rows.Add("Active maleware on the device", "",'Hidden')}
 
 }
 

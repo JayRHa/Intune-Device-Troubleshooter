@@ -122,6 +122,25 @@ function Set-UiAction{
             ($global:ips | Where-Object {$_.DeviceIp -eq $currentIp}).DevicePingStatus = "Host not reachable"
         }
     }
+
+    # Recommendations
+    Add-XamlEvent -object $WPFDataGridRecommendation -event "Add_GotMouseCapture" -scriptBlock {
+        $action = $this.CurrentItem.RecommendationAction
+
+        if($action -eq 'Check config profiles'){
+            $deviceId =  $global:SelectedDeviceDetails.Id
+            [system.Diagnostics.Process]::start("https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsMenuBlade/deviceConfiguration/mdmDeviceId/$deviceId")
+        }elseif($action -eq 'Check compliance policy'){
+            $deviceId =  $global:SelectedDeviceDetails.Id
+            [system.Diagnostics.Process]::start("https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsMenuBlade/compliance/mdmDeviceId/$deviceId")
+        }elseif($action -eq 'Assign a intune license'){
+            $deviceId =  $global:SelectedDeviceDetails.AzureAdDirectoryId
+            [system.Diagnostics.Process]::start("https://portal.azure.com/#view/Microsoft_AAD_Devices/DeviceDetailsMenuBlade/~/Properties/objectId/$deviceId")
+        }elseif($action -eq 'Check Apps'){
+            $deviceId =  $global:SelectedDeviceDetails.Id
+            [system.Diagnostics.Process]::start("https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsMenuBlade/managedApps/mdmDeviceId/$deviceId")
+        }        
+    }
 }
 
 function Hide-All {
@@ -216,19 +235,21 @@ function Open-DeviceView {
     $WPFLabelProfileError.Content       = if($device.ProfileError){$device.ProfileError}else{"/"}
     $WPFLabelProfileNotApplicable.Content = if($device.ProfileNotApplicable){$device.ProfileNotApplicable}else{"/"}
 
-
+    $WPFLabelAppsSucceeded.Content      = if($device.AppsInstalled){$device.AppsInstalled}else{"/"}
+    $WPFLabelAppsError.Content          = if($device.AppsError){$device.AppsError}else{"/"}
+    $WPFLabelAppsUnknow.Content         = if($device.AppsUnknow){$device.AppsUnknow}else{"/"}
 
     # IP Addresses
     $global:ips = [System.Data.DataTable]::New()
     [void]$global:ips.Columns.AddRange(@('DeviceIp', 'DevicePingStatus'))
     $global:ips.primarykey = $global:ips.columns['DeviceIp']
     $WPFDataGridDeviceIp.ItemsSource = $global:ips.DefaultView
-    $device.IpAddresses | ForEach-Object {[void]$global:ips.Rows.Add($_, "Not checked")}
-
+    if(($device.IpAddresses).count -gt 0){$device.IpAddresses | ForEach-Object {[void]$global:ips.Rows.Add($_, "Not checked")}}
     [System.Windows.Forms.Application]::DoEvents()
 
     Get-DeviceRecommendation
     [System.Windows.Forms.Application]::DoEvents()
+    
     # Remediations
     if($device.OS -eq 'Windows'){
         $WPFTABRemediation.Visibility="Visible"

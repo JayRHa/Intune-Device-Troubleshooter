@@ -428,12 +428,18 @@
                                                 <Label Content="Config Profile Succeeded" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
                                                 <Label Content="Config Profile Error" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
                                                 <Label Content="Config Profile Not Applicable" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Apps Succeeded" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Apps Error" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Apps Unknow" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
                                                 <Label x:Name="LabelManagementCert" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
                                                 <Label x:Name="LabelProfileSucceeded" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
                                                 <Label x:Name="LabelProfileError" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
                                                 <Label x:Name="LabelProfileNotApplicable" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelAppsSucceeded" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelAppsError" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelAppsUnknow" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
                                             </StackPanel>
                                         </Grid>
 
@@ -476,7 +482,7 @@
                                         <DataGridTemplateColumn>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <Button Name="ButtonTriggerAction" Content="{Binding RecommendationAction}"/>
+                                                    <Button Name="ButtonTriggerAction" Content="{Binding RecommendationAction}" Visibility="{Binding RecommendationActionVisibility}"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
