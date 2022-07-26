@@ -5,6 +5,8 @@ Script: Start-Deviceroubleshooter
 Description:
 Helper to troubleshoot Intune device
 Release notes:
+1.0 :
+- Init
 
 #> 
 ###########################################################################################################
@@ -109,7 +111,14 @@ Set-UiActionButton
 # Authentication
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
 [System.Windows.Forms.Application]::DoEvents()
-Set-LoginOrLogout
+
+$a = Set-LoginOrLogout
+if($a -eq $false){
+    Write-Error "Error during authentication"
+    Write-Warning "Please try again"
+    $global:messageScreen.Hide()
+    Exit 
+}
 
 $global:messageScreenText.Text = "Get all managed devices"
 [System.Windows.Forms.Application]::DoEvents()
