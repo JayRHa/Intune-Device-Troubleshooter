@@ -36,7 +36,7 @@ function Search-Device{
 ########################################################################################
 function Get-AllManagedDevices {
     $managedDevices = @()
-    $devices = Get-MgDeviceManagementManagedDevice -All -Property "azureAdDeviceId,deviceName,managementAgent,ownerType,complianceState,deviceType,userId,userPrincipalName,osVersion,lastSyncDateTime,userPrincipalName,id,deviceRegistrationState,managementState,exchangeAccessState,exchangeAccessStateReason,deviceActionResults,deviceEnrollmentType"
+    $devices = Get-MgDeviceManagementManagedDevice -All -Filter "operatingSystem eq 'windows,macOS'" -Property "azureAdDeviceId,deviceName,managementAgent,ownerType,complianceState,deviceType,userId,userPrincipalName,osVersion,lastSyncDateTime,userPrincipalName,id,deviceRegistrationState,managementState,exchangeAccessState,exchangeAccessStateReason,deviceActionResults,deviceEnrollmentType"
 
     $devices | ForEach-Object {
         $param = [PSCustomObject]@{
@@ -78,7 +78,8 @@ function Add-DevicesToGrid{
     $items = @()
     $devices = $devices | Sort-Object -Property DeviceName
     $items += $devices | Select-Object -First $([int]$($WPFComboboxDevicesCount.SelectedItem))
-	$WPFListViewAllDevices.ItemsSource = $items
+
+	$WPFDataGridAllDevices.ItemsSource = $items
 	$WPFLabelCountDevices.Content = "$($items.count) Devices"
 }
 
@@ -91,25 +92,128 @@ function Get-DeviceData{
         [String]$deviceId
     )
 
-    $device = Get-MgDeviceManagementManagedDevice -ManagedDeviceId $deviceId
+    $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices('"+ $deviceId + "')"
+    $device = (Invoke-MgGraphRequest -Method GET -Uri $uri)
+    $deviceDetails = (Invoke-MgGraphRequest -Method GET -Uri ($uri+'?$select=id,hardwareinformation,processorArchitecture,physicalMemoryInBytes'))
+
     $deviceDirectoryId = (Get-MgDevice -Search "DeviceId:$($device.AzureAdDeviceId)" -ConsistencyLevel eventual).Id
-    $deviceHash = Get-MgDeviceManagementWindowAutopilotDeviceIdentity -Search "AzureAdDeviceId:$($deviceDirectoryId)"
+    $deviceHash = Get-MgDeviceManagementWindowAutopilotDeviceIdentity | Where-Object {$_.AzureAdDeviceId -eq $device.AzureAdDeviceId}
+    $deviceOwner = Get-MgDeviceManagementManagedDeviceUser -ManagedDeviceId $deviceId
+
+    $storage = ""
+    if($($device.freeStorageSpaceInBytes)){
+        $storageTotal = [math]::Round(($($device.totalStorageSpaceInBytes) / 1GB))
+        $storageUsed = $storageTotal - ([math]::Round(($($device.freeStorageSpace) / 1GB)))
+        $storageProcent = [math]::Round((100 / $storageTotal) * $storageUsed)
+        $storage = "$($storageUsed)GB/$($storageTotal)GB ($storageProcent%)"
+    }else {
+        $storage = "/" 
+    }
+
+    # Compliance
+    $deviceCompliance = (Get-MgDeviceManagementManagedDeviceCompliancePolicyState -ManagedDeviceId $deviceId) | Where-Object {-not($_.State -eq 'unknown')}
+    $deviceCompliance.count
+    $compliantCount = ($deviceCompliance | Where-Object{ $_.State -eq 'compliant'}).count
+    $noCompliantCount = ($deviceCompliance | Where-Object {$_.State -eq 'nonCompliant'}).count
+    $noCompliant =  @(($deviceCompliance | Where-Object {$_.State -eq 'nonCompliant'}).DisplayName)
+    $notApplicableCount = ($deviceCompliance | Where-Object {$_.State -eq 'notApplicable'}).count
+
+    # Config Profiles
+    $deviceConfigProfiles = Get-MgDeviceManagementManagedDeviceConfigurationState -ManagedDeviceId $deviceId | Where-Object {-not($_.State -eq 'unknown')}
+
+    $configProfileSucceededCount        = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'compliant'}).count
+    $configProfileErrorCount            = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'error'}).count
+    $configProfileError                 = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'error'}).DisplayName
+    $configProfileNotApplicableCount    = ($deviceConfigProfiles | Where-Object{ $_.State -eq 'notApplicable'}).count
+
+
 
     $device = [PSCustomObject]@{
         Id                      = $deviceId
-        AzureAdId               = $device.AzureAdDeviceId
-        AzureAdDirectoryId      = $device.deviceDirectoryId
+        AzureAdId               = $device.azureADDeviceId
+        AzureAdDirectoryId      = $deviceDirectoryId
         DeviceHashId            = $deviceHash.Id
-        GroupTag                = $deviceHash.GroupTag
-        DeviceName              = $device.DeviceName
-        SerialNr                = $device.SerialNumber
-        Owner                   = $device.UserPrincipalName
-        Category                = $device.DeviceCategoryDisplayName
-        DeviceType              = $device.DeviceType
+        Mac                     = $device.ethernetMacAddress
+
+        Hostname                = $device.deviceName
+        ManagedDeviceName       = $device.managedDeviceName
+        EnrolledDateTime        = $device.enrolledDateTime
+        LastSyncDateTime        = $device.lastSyncDateTime
+        SerialNr                = $device.serialNumber
+        Owner                   = $device.userPrincipalName
+        Category                = $device.deviceCategoryDisplayName
+        DeviceRegistration      = $device.deviceRegistrationState
+        AzureAdRegistered       = $device.azureAdRegistered
+        DeviceOwnerType         = $device.managedDeviceOwnerType
+        ManagementAgent         = $device.managementAgent
+        EnrollmentType          = $device.deviceEnrollmentType
+        LostModeState           = $device.lostModeState
+
+        AutopilotEnrollment     = ($device.autopilotEnrolled).ToString()
+        EnrollmentProfile       = $device.enrollmentProfileName
+        GroupTag                = $deviceHash.groupTag
+        AutopilotHashAssignment = $deviceHash.deploymentProfileAssignmentStatus
+        AutopilotHashAssignmentDT = $deviceHash.deploymentProfileAssignedDateTime
+        PurchaseOrder           = $deviceHash.purchaseOrderIdentifier
+
+        ComplianceState         = $device.complianceState 
+        CompliantPolicies       = "$compliantCount/$($compliantCount+$noCompliantCount)"
+        UncompliantPolicies     = $noCompliantCount
+        NotApplicablePolicies   =  $notApplicableCount 
+        UncompliantPoliciesList = $noCompliant
+
+        OwnerName               = $deviceOwner.displayName
+        OwnerUpn                = $deviceOwner.userPrincipalName
+        OwnerAccountEnabled     = $deviceOwner.accountEnabled
+        OwnerPhone              = $deviceOwner.businessPhones[0]
+        OwnerEmail              = $deviceOwner.mail
+        OwnerId                 = $deviceOwner.id
+        OwnerSid                = $deviceOwner.additionalProperties.securityIdentifier
+        OwnerCountry            = $deviceOwner.country
+        OwnerDepartment         = $deviceOwner.department
+        OwnerIntuneLicense      = if((($deviceOwner.assignedPlans | Where-Object {$_.servicePlanId -eq 'c1ec4a95-1f05-45b3-a911-aa3fa01094f5' -and $_.capabilityStatus -eq "Enabled"}).count) -gt 0){"True"}else{"False"}
+
+        Manufacturer            = $device.manufacturer
+        Model                   = $device.model
+        OS                      = $device.operatingSystem
+        OsVersion               = "$($device.osVersion) ($($device.skuFamily))"
+        OsLanguage              = $deviceDetails.hardwareInformation.operatingSystemLanguage
+        BiosVersion             = $deviceDetails.hardwareInformation.systemManagementBIOSVersion
+        Hardwaretype            = $device.chassisType
+        Storage                 = $storage
+        Ram                     = "$(($deviceDetails.physicalMemoryInBytes / 1GB))GB"
+        IsEncrypted             = ($device.isEncrypted).ToString()
+
+        ActiveMalware           = ($device.windowsActiveMalwareCount).ToString()
+        RemediatedMalware       = ($device.windowsRemediatedMalwareCount).ToString()
+
+
+        IpAddresses             = $deviceDetails.hardwareInformation.wiredIPv4Addresses
+    
+        ManagementCert          = $device.managementCertificateExpirationDate
+        ProfileSucceeded        = "$configProfileSucceededCount/$($configProfileSucceededCount+$configProfileErrorCount)"  
+        ProfileError            = $configProfileErrorCount
+        ProfileNotApplicable    = $configProfileNotApplicableCount
+        ProfilesErrorList       = $configProfileError
       }
 
+    $global:SelectedDeviceDetails = $device
     return $device
 }
+
+function Get-DeviceRecommendation {
+
+    # IP Addresses
+    $global:recommendations = [System.Data.DataTable]::New()
+    [void]$global:recommendations.Columns.AddRange(@('Recommendation', 'RecommendationAction'))
+    $global:recommendations.primarykey = $global:recommendations.columns['Recommendation']
+    $WPFDataGridRecommendation.ItemsSource = $global:recommendations.DefaultView
+
+    $global:SelectedDeviceDetails.ProfilesErrorList | ForEach-Object {[void]$global:recommendations.Rows.Add("Error state for Config Profile: $_ ", "Check config profiles")}
+    $global:SelectedDeviceDetails.UncompliantPoliciesList | ForEach-Object {[void]$global:recommendations.Rows.Add("Uncompliant Policy: $_ ", "Check compliance policy")}
+
+}
+
 ### Remediations
 function Get-RemediationScripts{
     param (

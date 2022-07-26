@@ -4,20 +4,30 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IntuneToolBox"
+        xmlns:loading="clr-namespace:LoadingIndicators.WPF;assembly=LoadingIndicators.WPF"		
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:dialogs="clr-namespace:SimpleDialogs.Controls;assembly=SimpleDialogs"
         mc:Ignorable="d"
-        Title="Intune Device Troubleshooter - V 1.0 by Jannik Reinhard" Height="550" Width="1000" MinWidth="1000" MinHeight="550" MaxWidth="1000" MaxHeight="550"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
+        Title="Intune Device Troubleshooter - V 1.0 by Jannik Reinhard" Height="800" Width="1300" MinWidth="1300" MinHeight="800"
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SimpleDialogs;component/Themes/Dark.xaml" />
+
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Styles/LoadingWave.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Styles/LoadingThreeDots.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Styles/LoadingFlipPlane.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Styles/LoadingPulse.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Styles/LoadingDoubleBounce.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Colors.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/LoadingIndicators.WPF;component/Styles.xaml"/>	
+
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Steel.xaml"/>
+
             </ResourceDictionary.MergedDictionaries>
             <SolidColorBrush x:Key="ListViewBackground" Color="Transparent" />
         </ResourceDictionary>
@@ -84,113 +94,86 @@
                         <RowDefinition Height="40"/>
                         <RowDefinition />
                     </Grid.RowDefinitions>
-
-
                     <Button x:Name="ButtonRefreshDeviceOverview" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#323130" BorderThickness="0,0,0,0" >
                         <StackPanel Orientation="Horizontal">
                             <Image Width="20" x:Name="ImgRefresh" Height="18"/>
                             <Label Content="Refresh" Foreground="White"/>
                         </StackPanel>
                     </Button>
-
                     <StackPanel  Orientation="Horizontal" Grid.Row="2" Margin="5">
                         <StackPanel  Orientation="Horizontal" >
                             <Image Width="20" x:Name="ImgMaxDevices" Height="18"/>
                             <ComboBox x:Name="ComboboxDevicesCount" Grid.Row="0" HorizontalAlignment="Left" Margin="5,0,0,0" Background="#FF1B1A19" VerticalAlignment="Center" Width="57" IsReadOnly="True" FontSize="10" BorderBrush="White" Foreground="White" OpacityMask="#FF1B1A19"/>
                         </StackPanel>
-
                         <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
                             <Image Width="20" x:Name="ImgDeviceCount" Height="18"/>
                             <Label x:Name="LabelCountDevices" Content="0 Groups" Foreground="White" VerticalAlignment="Center" />
                         </StackPanel>
                     </StackPanel>
-
                     <Border BorderBrush="#A19F9D" BorderThickness="1" VerticalAlignment="Center" Grid.Row="1" Width="378" HorizontalAlignment="Left" Margin="10,0,0,0">
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <Image Width="20" x:Name="ImgSearchBoxDevice" Height="18"/>
                             <TextBox x:Name="TextboxSearchBoxDevice" Margin="3 0 0 0" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Center" Width="339" Background="#FF1B1A19" Foreground="White" BorderThickness="0"/>
                         </StackPanel>
                     </Border>
+                    <DataGrid x:Name="DataGridAllDevices" Margin="5,5,5,5"  Grid.Row="3" SelectionMode="Single" IsReadOnly = "True" GridLinesVisibility = "Horizontal" CanUserReorderColumns = "True"  SelectionUnit="FullRow" ColumnWidth="*" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding DeviceName}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Device name" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
 
-                    <ListView x:Name="ListViewAllDevices" Margin="5,5,5,5" IsManipulationEnabled="False" Grid.Row="3" Foreground="White" SelectionMode="Single">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Device name" DisplayMemberBinding="{Binding DeviceName}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Managed by" DisplayMemberBinding="{Binding DeviceManagedBy}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn  Header="Ownership" DisplayMemberBinding="{Binding DeviceOwnership}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Compliance" DisplayMemberBinding="{Binding DeviceCompliance}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn Header="OS" DisplayMemberBinding="{Binding DeviceOS}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn Header="OS Version" DisplayMemberBinding="{Binding DeviceOSVersion}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Last check-in" DisplayMemberBinding="{Binding DeviceLastCheckin}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                                <GridViewColumn Header="Primary user" DisplayMemberBinding="{Binding DevicePrimaryUser}">
-                                    <GridViewColumn.HeaderContainerStyle>
-                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                        </Style>
-                                    </GridViewColumn.HeaderContainerStyle>
-                                </GridViewColumn>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
+                        <DataGridTextColumn Binding="{Binding DeviceManagedBy}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Managed by" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  Binding="{Binding DeviceOwnership}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Ownership" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  Binding="{Binding DeviceCompliance}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Compliance" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="Not Compliant">
+                                            <Setter Property="Foreground" Value="Red" />
+                                        </Trigger>
+                                        <Trigger Property="Text" Value="Compliant">
+                                            <Setter Property="Foreground" Value="Green" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+							</DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  Binding="{Binding DeviceOS}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="OS" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  Binding="{Binding DeviceOSVersion}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="OS Version" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  Binding="{Binding DeviceLastCheckin}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Last check-in" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn  Binding="{Binding DevicePrimaryUser}" >
+                            <DataGridTextColumn.Header>
+                                <TextBlock Text="Primary user" FontSize="18" />
+                            </DataGridTextColumn.Header>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
                 </Grid>
             </Grid>
             <!-- Signel Device view-->
@@ -205,7 +188,6 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition/>
@@ -240,54 +222,266 @@
                             </StackPanel>
                         </StackPanel>
                         <TabControl x:Name="tabControlDevice" Grid.Row="2" Background="#FF1B1A19" Foreground="White" VerticalAlignment="Stretch">
-                            <!-- Recommendation-->
-                            <TabItem x:Name="TABRecommendation" Header="Recommendations" Background="#FF1B1A19">
-                                <ListView x:Name="ListViewRecommendation" Margin="5,5,5,5" IsManipulationEnabled="False" Grid.Row="3" Foreground="White" SelectionMode="Single">
-                                    <ListView.View>
-                                        <GridView>
-                                            <GridViewColumn Header="Recommendation" DisplayMemberBinding="{Binding Recommendation}">
-                                                <GridViewColumn.HeaderContainerStyle>
-                                                    <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                        <Setter Property="Background" Value="#FF1B1A19" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                    </Style>
-                                                </GridViewColumn.HeaderContainerStyle>
-                                            </GridViewColumn>
-                                            <GridViewColumn Header="Action" DisplayMemberBinding="{Binding RecommendationAction}">
-                                                <GridViewColumn.HeaderContainerStyle>
-                                                    <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                        <Setter Property="Background" Value="#FF1B1A19" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                    </Style>
-                                                </GridViewColumn.HeaderContainerStyle>
-                                            </GridViewColumn>
-                                        </GridView>
-                                    </ListView.View>
-                                </ListView>
-                            </TabItem>
                             <!-- Overview-->
                             <TabItem x:Name="TABOverview" Header="Overview" Background="#FF1B1A19">
-                                <StackPanel Orientation="Horizontal">
+                                <ScrollViewer VerticalAlignment="Bottom">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                                     <StackPanel Orientation="Vertical">
-                                        <Grid Grid.Row="1">
+                                        <!-- Device Info-->
+                                        <Label Content="Device Infos" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="25*"/>
-                                                <ColumnDefinition Width="33*"/>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
                                             </Grid.ColumnDefinitions>
-                                            <Label Content="Intune Device Id" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
-                                            <Label Content="Azure Ad Device Id" HorizontalAlignment="Left" Margin="5,40,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
-                                            <Label Content="Azure Ad directory Id" HorizontalAlignment="Left" Margin="5,70,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
-                                            <Label Content="Device hash Id" HorizontalAlignment="Left" Margin="5,100,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
-
-                                            <Label x:Name="LabelIntuneDeviceId" Content="" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
-                                            <Label x:Name="LabelAzureAdDeviceId" Content="" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
-                                            <Label x:Name="LabelAdDirectoryId" Content="" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
-                                            <Label x:Name="LabelDeviceHashId" Content="" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Hostname" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Managed Devicename" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Enrolled DateTime" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="LastSync DateTime" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Category" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Device Registration" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Device Owner Type" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Management agent" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Enrollment Type" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>   
+                                                <Label Content="Lost Mode State" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>   
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelHostname" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelManagedDevicename" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelEnrolledDateTime" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelLastSyncDateTime" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelCategory" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelDeviceRegistration" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>                                                                                               
+                                                <Label x:Name="LabelDeviceOwnerType" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>    
+                                                <Label x:Name="LabelManagementAgent" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>    
+                                                <Label x:Name="LabelEnrollmentType" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>    
+                                                <Label x:Name="LabelLostModeState" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>  
+                                            </StackPanel>
                                         </Grid>
+                                        
+                                        <!-- Device IDs-->
+                                        <Label Content="Device Ids" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Intune Device Id" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="AzureAd Device Id" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="AzureAd Directory Id" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Autopilot Device Id" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Mac Address" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelIntuneDeviceId" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#0377D6" FontWeight="Bold"/>
+                                                <Label x:Name="LabelAzureAdDeviceId" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#0377D6" FontWeight="Bold"/>
+                                                <Label x:Name="LabelAdDirectoryId" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#0377D6" FontWeight="Bold"/>
+                                                <Label x:Name="LabelDeviceHashId" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelMacAddress" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Autopilot info-->
+                                        <Label Content="Autopilot info" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Autopilot Enrollment" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Enrollment Profile" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Grouptag" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Assignment status" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Assignment datetime" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Purchase order" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelAutopilotEnrollment" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelEnrollmentProfile" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelGrouptag" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelAssignmentStatus" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelAssignmentDatetime" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelPurchaseOrder" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Label Content="Maleware Info" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Active Malware" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Remediated Malware" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelActiveMalware" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelRemediatedMalware" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                            </StackPanel>
+                                        </Grid>
+                                        
+                                    </StackPanel>
+                                    <StackPanel Orientation="Vertical">
+                                        <!-- Device Compliance -->
+                                        <Label Content="Device Compliance" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Device Compliance State" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Compliant Policies" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Uncompliant Policies" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Not Applicable Policies" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelComplianceState" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelCompliantPolicies" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelUncompliantPolicies" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelNotApplicablePolicies" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <!-- Owner Info-->
+                                        <Label Content="Device Owner" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Ownername" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="UPN" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Account enabled" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Phone" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Email" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Id" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Sid" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Country" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Department" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Intune License" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelAccountId" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#0377D6" FontWeight="Bold"/>
+                                                <Label x:Name="LabelAccountOwnername" Content="" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelAccountUPN" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelAccountEnabled" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelAccountPhone" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelAccountEmail" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelAccountSid" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelAccountCountry" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelAccountDepartment" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelIntuneLicense" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        
+                                        <!-- Hardware Info-->
+                                        <Label Content="Hardware Info" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Serialnumber" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Manufacturer" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Model" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="OS" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="OS Version" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="OS Language" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="BIOS Version" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Hardware Type" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Storage" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Ram" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Device Encrypted" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelSerialnumber" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelManufacturer" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelModel" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelOS" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelOsVersion" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelOsLanguage" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelBiosVersion" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelHardwaretype" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5"/>
+                                                <Label x:Name="LabelStorage" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelRam" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelIsEncrypted" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                    </StackPanel>
+                                    <StackPanel Orientation="Vertical">
+                                        <!-- Device Status-->
+                                        <Label Content="Management Info" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Vertical"  Margin="10,0,0,0">
+                                                <Label Content="Management Certificate Expiration" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Config Profile Succeeded" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Config Profile Error" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                                <Label Content="Config Profile Not Applicable" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Vertical"  Grid.Column="1" Margin="10,0,0,0">
+                                                <Label x:Name="LabelManagementCert" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelProfileSucceeded" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelProfileError" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                                <Label x:Name="LabelProfileNotApplicable" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#2089F5" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Device IPs-->
+                                        <Label Content="Ip Addresses" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#A19F9D"  Margin="2,10,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <DataGrid x:Name="DataGridDeviceIp" SelectionMode="Single" CanUserResizeColumns="False" IsReadOnly = "True" GridLinesVisibility = "Horizontal" CanUserReorderColumns = "True"  IsSynchronizedWithCurrentItem="True" SelectionUnit="FullRow" AutoGenerateColumns="False">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding DeviceIp}">
+                                                    <DataGridTextColumn.Header>
+                                                        <TextBlock Text="Ip" FontSize="12" />
+                                                    </DataGridTextColumn.Header>
+                                                </DataGridTextColumn>
+                                                <DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Button Name="ButtonPingDevice" Content="Ping Device"/>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTextColumn Binding="{Binding DevicePingStatus}">
+                                                    <DataGridTextColumn.Header>
+                                                        <TextBlock Text="Status" FontSize="12" />
+                                                    </DataGridTextColumn.Header>
+                                                </DataGridTextColumn>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
                                     </StackPanel>
                                 </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <!-- Recommendation-->
+                            <TabItem x:Name="TABRecommendation" Header="Recommendations" Background="#FF1B1A19">
+                                <DataGrid x:Name="DataGridRecommendation" Margin="5,5,5,5" SelectionMode="Single" IsReadOnly = "True" GridLinesVisibility = "Horizontal" CanUserReorderColumns = "True"  SelectionUnit="FullRow" ColumnWidth="*" AutoGenerateColumns="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding Recommendation}" >
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Recommendation" FontSize="18" />
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                        <DataGridTemplateColumn>
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Name="ButtonTriggerAction" Content="{Binding RecommendationAction}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </TabItem>
                             <!-- Remediation--> 
                             <TabItem x:Name="TABRemediation" Header="Remediations" Background="#FF1B1A19" Visibility="Visible">
@@ -306,70 +500,58 @@
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>
-
-                                    <ListView x:Name="ListViewRemediation" Margin="5,5,5,5" IsManipulationEnabled="False" Grid.Row="3" Foreground="White" SelectionMode="Single">
-                                        <ListView.View>
-                                            <GridView>
-                                                <GridViewColumn Header="Remediation script name" DisplayMemberBinding="{Binding RemediationScriptName}">
-                                                    <GridViewColumn.HeaderContainerStyle>
-                                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                        </Style>
-                                                    </GridViewColumn.HeaderContainerStyle>
-                                                </GridViewColumn>
-                                                <GridViewColumn Header="Author" DisplayMemberBinding="{Binding RemediationAuthor}">
-                                                    <GridViewColumn.HeaderContainerStyle>
-                                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                        </Style>
-                                                    </GridViewColumn.HeaderContainerStyle>
-                                                </GridViewColumn>
-                                                <GridViewColumn Header="Script Status" DisplayMemberBinding="{Binding RemediationStatus}">
-                                                    <GridViewColumn.HeaderContainerStyle>
-                                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                        </Style>
-                                                    </GridViewColumn.HeaderContainerStyle>
-                                                </GridViewColumn>
-
-                                                <GridViewColumn Header="Assigned to Device" DisplayMemberBinding="{Binding RemediationAssignedToDevice}">
-                                                    <GridViewColumn.HeaderContainerStyle>
-                                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                        </Style>
-                                                    </GridViewColumn.HeaderContainerStyle>
-                                                </GridViewColumn>
-
-                                                <GridViewColumn Header="Detection Status" DisplayMemberBinding="{Binding RemediationDetectionStatus}">
-                                                    <GridViewColumn.HeaderContainerStyle>
-                                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                        </Style>
-                                                    </GridViewColumn.HeaderContainerStyle>
-                                                </GridViewColumn>
-
-                                                <GridViewColumn Header="Remediation Status" DisplayMemberBinding="{Binding RemediationRemediationStatus}">
-                                                    <GridViewColumn.HeaderContainerStyle>
-                                                        <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                            <Setter Property="Background" Value="#FF1B1A19" />
-                                                            <Setter Property="Foreground" Value="White" />
-                                                            <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                        </Style>
-                                                    </GridViewColumn.HeaderContainerStyle>
-                                                </GridViewColumn>
-                                            </GridView>
-                                        </ListView.View>
-                                    </ListView>
+                                    <DataGrid x:Name="ListViewRemediation" Margin="5,5,5,5" SelectionMode="Single" IsReadOnly = "True" GridLinesVisibility = "Horizontal" CanUserReorderColumns = "True"  SelectionUnit="FullRow" ColumnWidth="*" AutoGenerateColumns="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Binding="{Binding RemediationScriptName}" >
+                                                <DataGridTextColumn.Header>
+                                                    <TextBlock Text="Remediation script name" FontSize="18" />
+                                                </DataGridTextColumn.Header>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Binding="{Binding RemediationAuthor}" >
+                                                <DataGridTextColumn.Header>
+                                                    <TextBlock Text="Author" FontSize="18" />
+                                                </DataGridTextColumn.Header>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Binding="{Binding RemediationStatus}" >
+                                                <DataGridTextColumn.Header>
+                                                    <TextBlock Text="Script Status" FontSize="18" />
+                                                </DataGridTextColumn.Header>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Binding="{Binding RemediationAssignedToDevice}" >
+                                                <DataGridTextColumn.Header>
+                                                    <TextBlock Text="Assigned to Device" FontSize="18" />
+                                                </DataGridTextColumn.Header>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Binding="{Binding RemediationDetectionStatus}" >
+                                                <DataGridTextColumn.Header>
+                                                    <TextBlock Text="Detection Status" FontSize="18" />
+                                                </DataGridTextColumn.Header>
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="{x:Type TextBlock}">
+                                                        <Style.Triggers>
+                                                            <Trigger Property="Text" Value="fail">
+                                                                <Setter Property="Foreground" Value="Red" />
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Binding="{Binding RemediationRemediationStatus}" >
+                                                <DataGridTextColumn.Header>
+                                                    <TextBlock Text="Remediation Status" FontSize="18" />
+                                                </DataGridTextColumn.Header>
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="{x:Type TextBlock}">
+                                                        <Style.Triggers>
+                                                            <Trigger Property="Text" Value="scriptError">
+                                                                <Setter Property="Foreground" Value="Red" />
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
                                 </StackPanel>
                             </TabItem>
                         </TabControl>
@@ -402,6 +584,7 @@
                 </StackPanel>
             </Grid>
         </Grid>
+        <loading:LoadingIndicator Margin="0,5,0,0" Name="LoadingDialog" SpeedRatio="1" Foreground="White" IsActive="True" Style="{DynamicResource LoadingIndicatorArcsRingStyle}" Visibility="Collapsed"/>
         <dialogs:DialogContainer Name="dialog"/>
     </Grid>
 </Window>

@@ -27,6 +27,7 @@ function Get-MessageScreen{
 
     $global:messageScreenTitle.Text = "Initializing Device Troubleshooter"
     $global:messageScreenText.Text = "Starting Device Troubleshooter"
+    [System.Windows.Forms.Application]::DoEvents()
     $global:messageScreen.Show() | Out-Null
     [System.Windows.Forms.Application]::DoEvents()
 }
@@ -47,6 +48,7 @@ function Import-AllModules
         {
             $global:messageScreenText.Text = "Failed to load module $file"
         }
+        [System.Windows.Forms.Application]::DoEvents()
     }
 }
 
@@ -55,7 +57,7 @@ function Import-AllModules
 ###########################################################################################################
 # Change
 $global:RemediationGroupPrefix = "MDM-Remediation-Trigger-"
-
+ 
 # Variables
 [array]$global:AllDeviceObservableCollection  = New-Object System.Collections.ObjectModel.ObservableCollection[Object]
 [array]$global:AllDeviceCollection = $null
@@ -64,11 +66,13 @@ $global:RemediationGroupPrefix = "MDM-Remediation-Trigger-"
 $global:Auth = $false
 $global:Path = $PSScriptRoot
 $global:SelectedDevice = ""
+$global:SelectedDeviceDetails = ""
 
 # Start Start Screen
 Get-MessageScreen -xamlPath ("$global:Path\xaml\message.xaml")
 $global:messageScreenTitle.Text = "Initializing Device Troubleshooter"
 $global:messageScreenText.Text = "Starting Device Troubleshooter"
+[System.Windows.Forms.Application]::DoEvents()
 
 # Load custom modules
 Import-AllModules
@@ -93,18 +97,22 @@ $global:formMainForm.add_Loaded({
 
 # Init User interface
 $global:messageScreenText.Text = "Load User Interface"
+[System.Windows.Forms.Application]::DoEvents()
 Set-UserInterface
 
 # Load the click actions
 $global:messageScreenText.Text = "Load Actions"
+[System.Windows.Forms.Application]::DoEvents()
 Set-UiAction
 Set-UiActionButton
 
 # Authentication
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
+[System.Windows.Forms.Application]::DoEvents()
 Set-LoginOrLogout
 
 $global:messageScreenText.Text = "Get all managed devices"
+[System.Windows.Forms.Application]::DoEvents()
 Get-AllManagedDevicesInList | out-null
 
 # Start Main Windows

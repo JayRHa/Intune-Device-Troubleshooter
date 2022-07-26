@@ -79,11 +79,49 @@ function Set-UiAction{
     }
 
     # Device 
-    Add-XamlEvent -object $WPFListViewAllDevices -event "Add_MouseDoubleClick" -scriptBlock {
-        $global:SelectedDevice = $WPFListViewAllDevices.SelectedItem
+    Add-XamlEvent -object $WPFDataGridAllDevices -event "Add_MouseDoubleClick" -scriptBlock {
+        $global:SelectedDevice = $WPFDataGridAllDevices.SelectedItem
+        $WPFGridContentFrame.IsEnabled = $false
+        $WPFLoadingDialog.Visibility="Visible"    
+        [System.Windows.Forms.Application]::DoEvents()
+
         Open-DeviceView -deviceId $global:SelectedDevice.Id | Out-Null
+
+        $WPFLoadingDialog.Visibility="Collapsed"
+        $WPFGridContentFrame.IsEnabled = $true
+        [System.Windows.Forms.Application]::DoEvents()
     }
-   
+
+    # Singel Device
+    Add-XamlEvent -object $WPFLabelIntuneDeviceId -event "Add_MouseDoubleClick" -scriptBlock {
+        $deviceId =  $global:SelectedDeviceDetails.Id
+        [system.Diagnostics.Process]::start("https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsMenuBlade/overview/mdmDeviceId/$deviceId")
+    }
+
+    Add-XamlEvent -object $WPFLabelAzureAdDeviceId -event "Add_MouseDoubleClick" -scriptBlock {
+        $deviceId =  $global:SelectedDeviceDetails.AzureAdDirectoryId
+        [system.Diagnostics.Process]::start("https://portal.azure.com/#view/Microsoft_AAD_Devices/DeviceDetailsMenuBlade/~/Properties/objectId/$deviceId")
+    }
+
+    Add-XamlEvent -object $WPFLabelAdDirectoryId -event "Add_MouseDoubleClick" -scriptBlock {
+        $deviceId =  $global:SelectedDeviceDetails.AzureAdDirectoryId
+        [system.Diagnostics.Process]::start("https://portal.azure.com/#view/Microsoft_AAD_Devices/DeviceDetailsMenuBlade/~/Properties/objectId/$deviceId")
+    }
+
+    Add-XamlEvent -object $WPFLabelAccountId -event "Add_MouseDoubleClick" -scriptBlock {
+        $ownerId =  $global:SelectedDeviceDetails.OwnerId
+        [system.Diagnostics.Process]::start("https://endpoint.microsoft.com/#blade/Microsoft_AAD_IAM/UserDetailsMenuBlade/Profile/userId/$ownerId")
+    }   
+
+    # IP
+    Add-XamlEvent -object $WPFDataGridDeviceIp -event "Add_GotMouseCapture" -scriptBlock {
+        $currentIp = $this.CurrentItem.DeviceIp
+        if(Test-Connection -Count 1 $currentIp -Quiet){
+            ($global:ips | Where-Object {$_.DeviceIp -eq $currentIp}).DevicePingStatus = "Host reachable"
+        }else{
+            ($global:ips | Where-Object {$_.DeviceIp -eq $currentIp}).DevicePingStatus = "Host not reachable"
+        }
+    }
 }
 
 function Hide-All {
@@ -97,36 +135,113 @@ function Open-DeviceView {
     param (
         [Parameter(Mandatory = $true)]
         [String]$deviceId
-    )
-    Hide-All
-    
+    )   
     # Get device Info
     $device = Get-DeviceData -deviceId $deviceId
+    [System.Windows.Forms.Application]::DoEvents()
+    Add-RemediationsToGrid -deviceId $deviceId
+    [System.Windows.Forms.Application]::DoEvents()
+    
+    ## Labbels to UI
+    $WPFLableDeviceName.Content     = if($device.Hostname){$device.Hostname}else{"/"}
+    $WPFLableSerialNr.Content       = if($device.SerialNr){$device.SerialNr}else{"/"}
 
+    # Device Info
+    $WPFLabelHostname.Content           = if($device.Hostname){$device.Hostname}else{"/"}
+    $WPFLabelManagedDevicename.Content  = if($device.ManagedDeviceName){$device.ManagedDeviceName}else{"/"}
+    $WPFLabelEnrolledDateTime.Content   = if($device.EnrolledDateTime){$device.EnrolledDateTime}else{"/"}
+    $WPFLabelLastSyncDateTime.Content   = if($device.LastSyncDateTime){$device.LastSyncDateTime}else{"/"}
+    $WPFLabelCategory.Content           = if($device.Category){$device.Category}else{"/"}
+    $WPFLabelDeviceRegistration.Content = if($device.DeviceRegistration){$device.DeviceRegistration}else{"/"}
+    $WPFLabelDeviceOwnerType.Content    = if($device.DeviceOwnerType){$device.DeviceOwnerType}else{"/"}
+    $WPFLabelManagementAgent.Content    = if($device.ManagementAgent){$device.ManagementAgent}else{"/"}
+    $WPFLabelEnrollmentType.Content     = if($device.EnrollmentType){$device.EnrollmentType}else{"/"}
+    $WPFLabelLostModeState.Content      = if($device.LostModeState){$device.LostModeState}else{"/"}
+    
+     
+    # Ids
+    $WPFLabelIntuneDeviceId.Content     = if($device.Id){$device.Id}else{"/"}
+    $WPFLabelAzureAdDeviceId.Content    = if($device.AzureAdId){$device.AzureAdId}else{"/"}
+    $WPFLabelAdDirectoryId.Content      = if($device.AzureAdDirectoryId){$device.AzureAdDirectoryId}else{"/"}
+    $WPFLabelDeviceHashId.Content       = if($device.DeviceHashId){$device.DeviceHashId}else{"/"}
+    $WPFLabelMacAddress.Content         = if($device.Mac){$device.Mac}else{"/"}
+
+    # Autopilot Info
+    $WPFLabelAutopilotEnrollment.Content = if($device.AutopilotEnrollment){$device.AutopilotEnrollment}else{"/"}
+    $WPFLabelEnrollmentProfile.Content = if($device.EnrollmentProfile){$device.EnrollmentProfile}else{"/"}
+    $WPFLabelGrouptag.Content           = if($device.GroupTag){$device.GroupTag}else{"/"}
+    $WPFLabelAssignmentStatus.Content   = if($device.AutopilotHashAssignment){$device.AutopilotHashAssignment}else{"/"}
+    $WPFLabelAssignmentDatetime.Content = if($device.AutopilotHashAssignmentDT){$device.AutopilotHashAssignmentDT}else{"/"}
+    $WPFLabelPurchaseOrder.Content      = if($device.PurchaseOrder){$device.PurchaseOrder}else{"/"}
+
+    #Compliant
+    $WPFLabelComplianceState.Content    = if($device.ComplianceState){$device.ComplianceState}else{""}
+    $WPFLabelCompliantPolicies.Content    = if($device.CompliantPolicies){$device.CompliantPolicies}else{"0"}
+    $WPFLabelUncompliantPolicies.Content    = if($device.UncompliantPolicies){$device.UncompliantPolicies}else{"0"}
+    $WPFLabelNotApplicablePolicies.Content    = if($device.NotApplicablePolicies){$device.NotApplicablePolicies}else{"0"}
+
+
+    # Owner
+    $WPFLabelAccountId.Content              = if($device.OwnerId){$device.OwnerId}else{"/"}
+    $WPFLabelAccountOwnername.Content       = if($device.OwnerName){$device.OwnerName}else{"/"}
+    $WPFLabelAccountUPN.Content             = if($device.OwnerUpn){$device.OwnerUpn}else{"/"}
+    $WPFLabelAccountEnabled.Content         = if($device.OwnerAccountEnabled){$device.OwnerAccountEnabled}else{"/"}
+    $WPFLabelAccountPhone.Content           = if($device.OwnerPhone){$device.OwnerPhone}else{"/"}
+    $WPFLabelAccountEmail.Content           = if($device.OwnerEmail){$device.OwnerEmail}else{"/"}
+    $WPFLabelAccountSid.Content             = if($device.OwnerSid){$device.OwnerSid}else{"/"}
+    $WPFLabelAccountCountry.Content         = if($device.OwnerCountry){$device.OwnerCountry}else{"/"}
+    $WPFLabelAccountDepartment.Content      = if($device.OwnerDepartment){$device.OwnerDepartment}else{"/"}
+    $WPFLabelIntuneLicense.Content          = if($device.OwnerIntuneLicense){$device.OwnerIntuneLicense}else{"/"}
+
+    # Hardware Info
+    $WPFLabelSerialnumber.Content       = if($device.SerialNr){$device.SerialNr}else{"/"}
+    $WPFLabelManufacturer.Content       = if($device.Manufacturer){$device.Manufacturer}else{"/"}
+    $WPFLabelModel.Content              = if($device.Model){$device.Model}else{"/"}
+    $WPFLabelOS.Content                 = if($device.OS){$device.OS}else{"/"}
+    $WPFLabelOsVersion.Content          = if($device.OsVersion){$device.OsVersion}else{"/"}
+    $WPFLabelOsLanguage.Content         = if($device.OsLanguage){$device.OsLanguage}else{"/"} 
+    $WPFLabelBiosVersion.Content        = if($device.BiosVersion){$device.BiosVersion}else{"/"} 
+    $WPFLabelHardwaretype.Content       = if($device.Hardwaretype){$device.Hardwaretype}else{"/"}
+    $WPFLabelStorage.Content            = if($device.Storage){$device.Storage}else{"/"}
+    $WPFLabelRam.Content                = if($device.Ram){$device.Ram}else{"/"}
+    $WPFLabelIsEncrypted.Content        = if($device.IsEncrypted){$device.IsEncrypted}else{"/"}
+
+    # Maleware Info
+    $WPFLabelActiveMalware.Content      = if($device.ActiveMalware){$device.ActiveMalware}else{"/"}
+    $WPFLabelRemediatedMalware.Content  = if($device.RemediatedMalware){$device.RemediatedMalware}else{"/"}
+
+    # Management Info
+    $WPFLabelManagementCert.Content     = if($device.ManagementCert){$device.ManagementCert}else{"/"}
+    $WPFLabelProfileSucceeded.Content   = if($device.ProfileSucceeded){$device.ProfileSucceeded}else{"/"}
+    $WPFLabelProfileError.Content       = if($device.ProfileError){$device.ProfileError}else{"/"}
+    $WPFLabelProfileNotApplicable.Content = if($device.ProfileNotApplicable){$device.ProfileNotApplicable}else{"/"}
+
+
+
+    # IP Addresses
+    $global:ips = [System.Data.DataTable]::New()
+    [void]$global:ips.Columns.AddRange(@('DeviceIp', 'DevicePingStatus'))
+    $global:ips.primarykey = $global:ips.columns['DeviceIp']
+    $WPFDataGridDeviceIp.ItemsSource = $global:ips.DefaultView
+    $device.IpAddresses | ForEach-Object {[void]$global:ips.Rows.Add($_, "Not checked")}
+
+    [System.Windows.Forms.Application]::DoEvents()
+
+    Get-DeviceRecommendation
+    [System.Windows.Forms.Application]::DoEvents()
     # Remediations
-    if($device.DeviceType -eq 'windowsRT'){
+    if($device.OS -eq 'Windows'){
         $WPFTABRemediation.Visibility="Visible"
-        Add-RemediationsToGrid -deviceId $deviceId
+        $WPFButtonShutdownDevices.Visibility="Collapsed"
     }else{
         $WPFTABRemediation.Visibility="Collapsed"
+        $WPFButtonShutdownDevices.Visibility="Visible"
     }
     
-
-    ## Labbels to UI
-    $WPFLableDeviceName.Content = $device.DeviceName
-    $WPFLableSerialNr.Content = $device.SerialNr
-
-    # Ids
-    $WPFLabelIntuneDeviceId.Content = $device.Id
-    $WPFLabelAzureAdDeviceId.Content = $device.AzureAdId
-    $WPFLabelAdDirectoryId.Content = $device.AzureAdDirectoryId
-    $WPFLabelDeviceHashId.Content = $device.DeviceHashId
-
-
-
-
+    Hide-All    
     $WPFGridDeviceView.Visibility="Visible"
 }
+
 ########################################################################################
 ###################################### Navigation ######################################
 ########################################################################################
