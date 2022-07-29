@@ -7,7 +7,6 @@ Helper to troubleshoot Intune device
 Release notes:
 1.0 :
 - Init
-
 #> 
 ###########################################################################################################
 ############################################ Functions ####################################################
@@ -112,8 +111,8 @@ Set-UiActionButton
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
 [System.Windows.Forms.Application]::DoEvents()
 
-$a = Set-LoginOrLogout
-if($a -eq $false){
+$login = Set-LoginOrLogout
+if($login -eq $false){
     Write-Error "Error during authentication"
     Write-Warning "Please try again"
     $global:messageScreen.Hide()
