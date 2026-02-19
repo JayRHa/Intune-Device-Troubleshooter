@@ -1,35 +1,112 @@
-# Intune-Device-Troubleshooter
-Intune Device Troubleshooter
+# Intune Device Troubleshooter
 
-[Blog Post]()
-<p align="left">
-  <a href="https://twitter.com/jannik_reinhard">
-    <img src="https://img.shields.io/twitter/follow/jannik_reinhard?style=social" target="_blank" />
-  </a>
-    <a href="https://github.com/JayRHa">
-    <img src="https://img.shields.io/github/followers/JayRHa?style=social" target="_blank" />
-  </a>
+<p align="center">
+  <img src=".images/startpage.png" alt="Intune Device Troubleshooter main view" width="100%" />
 </p>
 
-If you follow my blog, you know that there are two things I really like: helping people with their problems, and automating or simplifying processes. In this blog, I want to introduce you to my new tool, the Intune Device Troubleshooter. This is a PowerShell UI application that will help you to check the status of your devices, as well as support you to trigger remediation scripts to fix issues add-hock on single devices. It also provides you intelligent recommendations what you should check at a single device to determine and possible issue. So let's get started and look at the features of the tool.
-![Tool View](https://github.com/JayRHa/Intune-Device-Troubleshooter/blob/main/.images/startpage.png)
+<p align="center">
+  <a href="LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-2ea44f.svg" />
+  </a>
+  <img alt="PowerShell" src="https://img.shields.io/badge/PowerShell-WPF-5391FE.svg" />
+  <img alt="Microsoft Graph" src="https://img.shields.io/badge/Microsoft%20Graph-beta-0078D4.svg" />
+</p>
 
-## Device Overview
+PowerShell desktop UI for fast, device-level Intune troubleshooting.
 
-The Intune Device Troubleshooter provides you with a great overview of a lot of data around a single device that you wouldn't be able to get all of them through the MEM interface. The data is prepared and gives you a very clear view of the status of the device. If you double click on the IDs of the devices, it will open up the MEM console or Azure AD directly, where you can make changes as well.
-![View](https://github.com/JayRHa/Intune-Device-Troubleshooter/blob/main/.images/overview.png)
+It combines managed device data, user context, compliance/configuration status, app deployment states, and remediation actions in one place so you can investigate and act without jumping through multiple admin portals.
 
-## Trigger Action
+## Highlights
 
-You can perform actions directly through the tool, such as syncing the device or restarting it.
-![View](https://github.com/JayRHa/Intune-Device-Troubleshooter/blob/main/.images/action.png)
+- Unified single-device view with Intune + Entra ID context
+- Built-in device actions (`Sync`, `Restart`, `Shutdown` when available)
+- Actionable recommendations based on current device signals
+- One-click remediation trigger for individual devices
+- Deep links to Intune admin center and Azure portal from key IDs
 
-## Recommendations
+## Screenshots
 
-All the data that is accessible for thisdevice is intelligently analysed and suggestions are made to quickly see what might be wrong with the device so that you can check or fix it. This speeds up your troubleshooting process and prevents you from missing anything. If you have any further ideas for checks, please let me know so that I can include them.
-![View](https://github.com/JayRHa/Intune-Device-Troubleshooter/blob/main/.images/recommendations.png)
+| Device overview | Device actions |
+| --- | --- |
+| ![Overview](.images/overview.png) | ![Actions](.images/action.png) |
 
-## Remediation Scrips trigger
+| Recommendations | Remediation trigger |
+| --- | --- |
+| ![Recommendations](.images/recommendations.png) | ![Remediation](.images/remediation.png) |
 
-This is a feature that can really help you with the solving of errors. In the MEM Console, you can only assign remediation scripts to a group but you can't trigger it on an individual device. That's exactly what I did with the Intune Troubleshooter. If you want to run an action on a single device, you can trigger the script and I'll create a group in the background (if it doesn't already exist) with the name "MDM-Remediation-Trigger-{ScriptName}" which you can of course change, and add the device to it. So the remediation action will be performed on the device quite timely.
-![View](https://github.com/JayRHa/Intune-Device-Troubleshooter/blob/main/.images/remediation.png)
+## Requirements
+
+- Windows host with PowerShell and WPF support
+- Access to Microsoft Intune and Microsoft Graph
+- User account with sufficient Intune/Entra admin rights
+
+The tool uses Microsoft Graph `beta` profile.
+
+## Graph Scopes Requested by the Tool
+
+On sign-in, the app requests:
+
+- `User.Read.All`
+- `User.Read`
+- `Group.Read.All`
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
+
+If remediation/group operations fail in your tenant, validate additional delegated permissions and role assignments for group write and remediation assignment operations.
+
+## Quick Start
+
+```powershell
+git clone https://github.com/JayRHa/Intune-Device-Troubleshooter.git
+cd Intune-Device-Troubleshooter
+```
+
+Unblock bundled DLLs once (recommended):
+
+```powershell
+Get-ChildItem .\libaries\*.dll | Unblock-File
+```
+
+Run the app:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Start-DeviceTroubleshooter.ps1
+```
+
+The script installs `Microsoft.Graph` automatically if it is missing.
+
+## How Remediation Triggering Works
+
+When you start a remediation script for one selected device, the tool:
+
+1. Uses (or creates) a security group named `MDM-Remediation-Trigger-{ScriptName}`
+2. Adds the selected device to that group
+3. Assigns the remediation script to the group (if not already assigned)
+4. Runs the remediation on the next service cycle
+
+The group prefix can be adjusted in `Start-DeviceTroubleshooter.ps1`.
+
+## Notes and Limitations
+
+- Device list is designed for managed `Windows` and `macOS` devices
+- Remediation tab is shown for Windows devices
+- Some API calls rely on Microsoft Graph `beta` behavior
+
+## Troubleshooting
+
+- Startup fails while loading DLLs: run `Get-ChildItem .\libaries\*.dll | Unblock-File`
+- Graph sign-in fails: ensure Microsoft Graph outbound access, allowed consent for scopes, and sufficient Intune/Entra role permissions
+- Remediation does not apply: check group creation/member add and verify remediation assignment + device eligibility in Intune
+
+## Author
+
+- Jannik Reinhard
+- Website: https://www.jannikreinhard.com
+- X/Twitter: https://twitter.com/jannik_reinhard
+- LinkedIn: https://www.linkedin.com/in/jannik-r/
+
+## License
+
+MIT. See `LICENSE`.
